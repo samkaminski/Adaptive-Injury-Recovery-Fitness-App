@@ -1,0 +1,45 @@
+/* RehabFit Design Tokens - Slice 0 */
+:root {
+  /* Colors */
+  --color-mint-bg: #e8f5e9;
+  --color-primary-green: #2e7d32;
+  --color-dark-gray: #2d2d2d;
+  --color-light-gray: #757575;
+  --color-white: #ffffff;
+
+  /* Typography */
+  --font-sans: system-ui, -apple-system, sans-serif;
+  --font-weight-bold: 600;
+  --font-size-title: 1.75rem;
+  --font-size-subtitle: 0.95rem;
+  --font-size-body: 0.9rem;
+  --font-size-small: 0.8rem;
+
+  /* Spacing */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+  --spacing-xl: 2.5rem;
+  --content-max-width: 320px;
+
+  /* Components */
+  --radius-pill: 9999px;
+  --radius-button: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--color-mint-bg);
+  color: var(--color-dark-gray);
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+}

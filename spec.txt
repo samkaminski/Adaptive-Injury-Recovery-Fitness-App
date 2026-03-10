@@ -1,0 +1,300 @@
+
+Auth Entry Flow Deep Research Roadmap for RehabFit
+UI style extracted from the screenshot
+The screenshot establishes a calm, “clinical-friendly” visual language: a very light mint background, a centered brand mark (rounded green square with a simple waveform icon), a bold app name, subtle gray supporting copy, and a single strong primary call-to-action anchored near the bottom with a full-width rounded button. The rest of the content sits in a narrow centered column with generous whitespace, small icon bullets, and restrained typography (no heavy gradients, no high-contrast loud colors).
+
+To match this look for an authentication-first app launch, the key is to preserve the same “spine” of the layout while swapping “feature bullets” for “auth choices.” If you keep the same hierarchy (logo → title → short supportive line → small, readable options → one primary bottom button + a simple text link below), the sign-in screen will feel native to this design system rather than “bolted on.”
+
+A UI translation that stays faithful to the screenshot’s structure:
+
+Top/center: logo + “RehabFit” + a one-line reassurance like “Sign in to save plans and track recovery safely.”
+Middle: compact button group (or two stacked buttons) for “Continue with Google” and “Sign in with email,” styled as calm, rounded pills consistent with the primary button geometry.
+Bottom: one large primary green button (e.g., “Sign in” if email fields are on-screen; or “Continue” if it’s an auth-choice screen).
+Under the primary: “Continue as Guest” as a simple text action (like the screenshot already shows).
+Secondary text actions: “Create account” and “Forgot password” styled as subtle links (reduced visual weight).
+The research-backed implication here: if you want this to be demo-reliable for a semester project, you should avoid multi-step UI complexity on day one and start with an “Auth Choice” landing screen (matching the screenshot’s informational landing composition), then navigate to dedicated screens for Email Sign-in / Create Account / Forgot Password.
+
+Recommended scope and screen set for the auth-only MVP
+To keep this phase sharply focused and still cover all requested behaviors (sign in, sign up, guest, Google, forgot password, persistent auth redirect), the smallest cohesive screen set is:
+
+Auth Entry (Auth Choice) Screen: first screen; offers “Continue with Google,” “Sign in with email,” and “Continue as Guest,” plus links to “Create account” and “Forgot password.”
+Email Sign In Screen: email + password form, primary “Sign in” button.
+Create Account Screen: email + password form, primary “Create account” button.
+Forgot Password Screen: email field; triggers password reset email via Firebase.
+App Placeholder Screen (out of scope feature-wise, but necessary for navigation): a simple “You’re signed in” home view and a Sign out button.
+This aligns with how Firebase Authentication expects you to provide UIs per provider (email/password forms, password reset flows, federated sign-in handling). 
+
+Architecture that stays lightweight and demo-safe
+Firebase SDK choice in Expo projects
+For a student project optimizing for speed and minimal native build friction, Expo’s documentation highlights two general approaches: Firebase JS SDK or React Native Firebase. If you want a quick start and compatibility with Expo Go for common Firebase services, Expo explicitly notes that the Firebase JS SDK is a reasonable choice. 
+
+However, there is a major tension you should plan for early: Expo’s current recommended “native Google sign-in” approach uses @react-native-google-signin/google-signin, which cannot run inside Expo Go because it requires custom native code. 
+
+That means you should decide—before you implement Google—whether your team will:
+
+stay “Expo Go compatible” for development convenience, or
+adopt a dev client / EAS build workflow earlier to support native Google sign-in. 
+Navigation pattern
+React Navigation’s recommended mental model for auth flows is: load auth state, then conditionally show either the authentication stack or the main app stack, and clear/auth state on sign-out. 
+
+Expo’s authentication overview explicitly points teams toward React Navigation’s auth flow guidance as a standard structure. 
+
+In practice for Firebase Auth, you can implement this with:
+
+an AuthProvider (React context) that listens to Firebase onAuthStateChanged
+a root navigator that renders either AuthStack or AppStack based on whether user is present.
+Persistent login requirements on React Native
+If you use the Firebase JavaScript SDK in React Native, persistence is not “just automatic” unless you configure it; Firebase guidance for React Native specifically calls out providing AsyncStorage to initializeAuth() using getReactNativePersistence(), otherwise auth can fall back to memory persistence and users may appear signed out on app restart. 
+
+AsyncStorage is unencrypted (fine for many app preferences but not ideal for sensitive material), while Expo SecureStore is explicitly designed to encrypt small key-value pairs. 
+
+For this project phase, the critical point is: don’t try to hand-roll token storage. Configure Firebase auth persistence correctly, and use navigation gating.
+
+Authentication method decisions and tradeoffs
+Email/password sign-in and sign-up
+Firebase’s password-based auth guide documents the core calls you’ll implement:
+
+createUserWithEmailAndPassword(auth, email, password) for sign-up
+signInWithEmailAndPassword(auth, email, password) for sign-in
+and requires enabling Email/Password in the Firebase console. 
+For “Forgot password,” Firebase’s manage-users documentation provides the password reset mechanism using sendPasswordResetEmail(auth, email) and notes that templates are configurable in the Firebase console. 
+
+Guest mode: anonymous auth vs local-only guest
+Firebase Authentication supports anonymous auth specifically for “use the app without creating an account,” and also supports upgrading that anonymous account later by linking credentials. 
+
+Firebase’s best practices for anonymous authentication emphasize two practical truths that matter for your UX choices:
+
+anonymous accounts are unrecoverable if the user is signed out and never upgraded
+upgrading (linking) preserves the same UID, which is ideal if you want to keep user data continuity. 
+Recommendation for a semester project: implement “Continue as Guest” using Firebase anonymous auth, not local-only guest mode.
+
+Reason: it gives you a stable uid immediately, which later lets you safely store user-scoped data in Firestore behind rules keyed to auth.uid (even for guests), and later lets you link to email or Google without data migration pain. This is exactly the workflow Firebase describes (anonymous now, link later). 
+
+Google sign-in: two viable implementation paths
+There are two realistic paths, and you should choose based on whether you want Expo-Go simplicity or native Google UX.
+
+Path A: Native Google sign-in via @react-native-google-signin/google-signin (Expo dev client/EAS required).
+Expo’s Google authentication guide is explicit that this library is not usable in Expo Go, and that you integrate it via a config plugin and native configuration (e.g., Google services files, SHA-1 on Android). 
+
+This path tends to be the most “real app” aligned for production-style mobile auth, but it adds build/config overhead.
+
+Path B: Google OAuth via Expo AuthSession (Expo-Go compatible), then sign into Firebase using the returned ID token.
+Expo’s authentication documentation describes using Expo AuthSession to initiate OAuth flows and handle redirects back into your app. 
+
+Firebase’s Google sign-in documentation explicitly supports “handling the sign-in flow manually” with Google Sign-In and then exchanging the Google ID token for a Firebase credential via signInWithCredential. 
+
+Inference (supported by both docs): if AuthSession yields a Google ID token, you can create a Firebase credential (GoogleAuthProvider) and signInWithCredential to create a Firebase session. This gives you Firebase’s unified identity layer even though the “front door” OAuth is web-based.
+
+Recommendation: for a semester demo, start with Path B unless your team is already committed to EAS/dev-client builds for other reasons. It’s usually the fastest route to “Continue with Google” working end-to-end without native signing headaches.
+
+Vertical slices that produce steady, testable progress
+Below is a slice plan designed so every slice ends with a demonstrable improvement and minimal rework. It also explicitly respects the UI style shown in your screenshot (centered content, calm typography, bottom anchored primary CTA, and a separate “Continue as Guest” line).
+
+Slice zero: Design tokens and static Auth Entry screen
+Purpose: lock the look and feel first so later functionality doesn’t distort the UI.
+
+Frontend tasks: implement the Auth Entry screen as a static page:
+
+mint background
+centered logo/title/subtitle
+three auth actions visible (“Continue with Google,” “Sign in with email,” “Continue as Guest”)
+primary button styling consistent with the screenshot’s “Get Started” bar
+Backend/Firebase: none.
+
+Navigation behavior: none (or stub navigation handlers).
+
+Data model: none.
+
+Testing: snapshot-style visual checks; confirm it renders across iOS/Android simulators.
+
+Definition of done: the first screen visually matches the reference screenshot’s layout and button geometry.
+
+Slice one: Navigation scaffold (AuthStack vs AppStack)
+Purpose: create the runnable skeleton that will host real authentication.
+
+Frontend tasks:
+
+set up React Navigation with:
+AuthStack (Auth Entry, Email Sign In, Create Account, Forgot Password)
+AppStack (a placeholder Home screen)
+Backend/Firebase: none.
+
+Navigation behavior:
+
+manually toggle between stacks via a temporary state variable, mirroring the canonical auth-flow pattern. 
+Testing: verify each screen is reachable and back navigation works.
+
+Definition of done: all auth-related screens exist (even if empty), and the app can switch between auth and app sections.
+
+Slice two: Firebase initialization and persistent auth state
+Purpose: make auth “stick” across app restarts, which is part of your requirements.
+
+Frontend tasks:
+
+create an AuthProvider that:
+initializes Firebase Auth
+subscribes to auth state changes
+exposes user, loading, and auth actions to the UI
+Firebase/backend tasks:
+
+initialize auth using initializeAuth() with persistence configured for React Native by passing AsyncStorage via getReactNativePersistence(). 
+confirm you are not inadvertently falling back to memory persistence (a known failure mode if you don’t provide AsyncStorage). 
+Navigation behavior:
+
+root navigator shows a loading state until auth initialization completes
+then shows AuthStack if user == null, else AppStack. 
+Data model: none yet.
+
+Testing:
+
+sign in (once implemented later), force-close the app, reopen: verify it bypasses AuthStack and lands in AppStack.
+Definition of done: the app reliably remembers auth state across restarts.
+
+Slice three: Guest mode implemented as Firebase anonymous auth
+Purpose: implement the highest-confidence “Continue as Guest” button with real identity.
+
+Frontend tasks:
+
+wire “Continue as Guest” to trigger anonymous sign-in
+show a friendly inline error message if it fails
+Firebase/backend tasks:
+
+enable Anonymous provider in Firebase console
+call signInAnonymously() on button press. 
+Navigation behavior:
+
+on success, auth state updates and user is routed to AppStack automatically via the auth gate.
+Data model:
+
+optional: create a users/{uid} document with minimal metadata (see next section).
+Testing:
+
+press “Continue as Guest,” confirm you land in AppStack
+sign out, confirm you return to AuthStack
+verify repeat guest sessions behave as expected (note: the “unrecoverable guest” limitation is normal unless upgraded). 
+Definition of done: guest entry is functional, stable, and routes correctly.
+
+Slice four: Email sign up and email sign in
+Purpose: implement the standard account flow with minimal UI friction.
+
+Frontend tasks:
+
+build forms on Email Sign In and Create Account screens
+integrate validation (required fields, minimum password length, simple error mapping)
+Firebase/backend tasks:
+
+enable Email/Password provider in Firebase console
+implement:
+createUserWithEmailAndPassword() on Create Account
+signInWithEmailAndPassword() on Email Sign In. 
+Navigation behavior:
+
+on success, user automatically routes to AppStack via auth gate
+Data model:
+
+optional: user doc creation (recommended below)
+Testing:
+
+create account, sign out, sign in again
+test unhappy paths (wrong password, weak password, malformed email)
+Definition of done: a new user can create an account, sign in, stay signed in, and sign out.
+
+Slice five: Forgot password and recovery UX
+Purpose: implement the “optional forgot password” requirement and reduce support burden.
+
+Frontend tasks:
+
+Forgot Password screen with email field
+success state (“Check your email”)
+neutral error state (don’t reveal whether an email exists if you later enable enumeration protection)
+Firebase/backend tasks:
+
+call sendPasswordResetEmail(auth, email) as documented. 
+Navigation behavior:
+
+link from Email Sign In → Forgot Password
+on success, offer “Back to sign in”
+Data model: none.
+
+Testing:
+
+test with a real email (or emulator) and verify the flow triggers
+confirm UI handles errors without crashing
+Definition of done: password reset requests can be initiated from the app.
+
+Slice six: Google sign-in implementation
+Purpose: deliver “Continue with Google” end-to-end.
+
+Frontend tasks:
+
+wire the “Continue with Google” button
+show busy state and friendly error on failure
+Firebase/backend tasks:
+
+enable Google provider in Firebase console. 
+choose one implementation path:
+Option A (native library): use the Expo Google authentication setup with @react-native-google-signin/google-signin, acknowledging you must move off Expo Go and use custom native code via the Expo config plugin; also plan for Android SHA-1 and platform config files. 
+
+Option B (AuthSession + Firebase credential): use Expo AuthSession to obtain a Google token and then sign in to Firebase by exchanging that token with signInWithCredential as described in Firebase’s manual Google sign-in flow. 
+
+Navigation behavior:
+
+on success, auth gate routes to AppStack.
+Data model:
+
+optional: store provider metadata on user doc.
+Testing:
+
+validate on both Android and iOS because redirect / client ID mismatches are common sources of failure
+verify it remains persistent across restarts (Slice two). 
+Definition of done: tapping “Continue with Google” results in a Firebase-authenticated session and correct routing.
+
+Minimal Firestore schema and security posture for this phase
+Even though you are focusing on auth screens, a minimal Firestore schema is useful because you will immediately have a stable user identity (including guest UIDs), and you can attach later onboarding/workout progress to that same UID without data migration.
+
+Minimal schema
+users/{uid} document
+createdAt (server timestamp)
+lastLoginAt (server timestamp)
+isAnonymous (boolean)
+provider (string: "anonymous" | "password" | "google")
+displayName (nullable string)
+email (nullable string; only if you truly need it)
+This remains minimal, and it supports the key anonymous-auth best practice: upgrading later without changing UID. 
+
+Minimal rules concept
+Firebase security rules can use the authenticated user’s UID, exposed via the auth variable, to restrict reads/writes to user-owned documents. The Firebase rules-and-auth documentation confirms auth.uid is the unique user ID available to rules. 
+
+So your single most important rule pattern for user docs is the “user can only access their own document” idea:
+
+allow read/write of users/{uid} only when request.auth.uid == uid
+For development confidence, Firestore provides a rules simulator to test authenticated vs unauthenticated requests against your rules. 
+
+Testing approach, emulator strategy, and what to postpone
+Use the Firebase Authentication emulator early
+For student teams, the Authentication emulator is valuable because you can build sign-up/sign-in flows without polluting production auth users or dealing with real password reset emails in early iterations. Firebase documents connecting the Auth emulator via connectAuthEmulator(auth, "http://127.0.0.1:9099") for the web SDK. 
+
+Firebase also notes that emulator-issued tokens are unsigned and only accepted by other emulators, which is a good safety property for local testing (but it means you should not mix emulator auth with production Firestore). 
+
+Key risks and mitigations
+Google sign-in complexity in Expo
+Expo’s own guide highlights that the “native” Google sign-in library is not compatible with Expo Go and requires config plugins/custom native code; this is often the single biggest schedule risk for student projects. 
+
+Mitigation: implement the AuthSession-based OAuth path first (web-based) and upgrade later only if needed. 
+
+Auth persistence pitfalls
+Firebase’s React Native guidance shows that missing AsyncStorage-backed persistence can cause auth state to reset between sessions. 
+
+Mitigation: treat Slice two (persistence) as non-optional, and accept that it is “foundational plumbing,” not polish.
+
+Guest account expectations
+Firebase best practices emphasize that anonymous accounts are unrecoverable and not portable across devices unless upgraded. 
+
+Mitigation: keep “Continue as Guest” but add a subtle UX nudge later encouraging account upgrade before you store anything the user would be upset to lose.
+
+What to postpone deliberately
+To keep this phase lean and demo-reliable, postpone:
+
+multi-factor auth / enterprise Identity Platform features (not needed for a class MVP). 
+complex OAuth server flows (Expo API Routes) unless you have a specific security reason; they add scope quickly. 
+deep profile systems beyond a minimal users/{uid} doc.

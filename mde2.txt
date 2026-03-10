@@ -1,0 +1,148 @@
+Adaptive Injury-Recovery Fitness App 
+By Benjamin Cohen (cohenben) 
+Samuel Kaminski (samkamin) 
+Nathaniel Baird(banatha) 
+ 
+1. Project Briefing 
+Goals and Impact of a Successful Project 
+We are building a mobile app that guides users safely through exercise-based rehabilitation 
+after common injuries. Traditional fitness apps prioritize intensity and performance, which can 
+be unsafe for injured users. Our system instead adapts workouts based on pain, soreness, and 
+readiness signals to prioritize recovery and prevent re-injury. 
+The MVP will focus on one injury type (e.g., knee or ankle) and implement a closed feedback 
+loop: 
+onboarding → personalized workout → user feedback → automatic adaptation → progress 
+tracking. 
+Success will be evaluated by: 
+●  Users completing sessions consistently 
+●  Reduced reported pain over time 
+●  Safe, gradual progression through rehab stages 
+●  Positive usability feedback in testing 
+In the short term, the project demonstrates a working adaptive rehab system. In the long term, 
+this approach could support additional injuries, clinician integration, and broader health use 
+cases. 
+Compared to generic workout apps, our solution is: 
+●  safer 
+●  recovery-focused rather than performance-focused 
+●  more approachable for non-athletes 
+The primary user group is individuals returning to exercise after injury, especially those without 
+regular access to a physical therapist. This supports the course’s “not only you” requirement by 
+designing for users with pain, mobility limits, and higher safety needs rather than healthy college 
+students. 
+ 
+Background Information 
+Existing fitness apps emphasize strength or aesthetics, not recovery. Rehabilitation is typically 
+managed through paper handouts or in-person physical therapy, with limited personalization 
+between visits. 
+We identified an opportunity to: 
+●  digitize rehab plans 
+●  collect daily recovery signals 
+●  adapt exercises automatically 
+●  provide clear progress feedback 
+Key challenges include: 
+●  encoding safe progression rules 
+●  avoiding unsafe recommendations 
+●  designing an interface that is calm and non-intimidating 
+●  keeping scope realistic for one semester 
+We mitigate risk by limiting scope to one injury type and a small exercise library. 
+ 
+Team Members, Skills, and Organization 
+Names: Benjamin Cohen, Sam Kaminski, Nathaniel Baird. 
+Our team combines strengths in: 
+●  mobile development (Nathaniel) 
+●  backend systems (Sam) 
+●  data modeling(Benjamin) 
+●  Theory (Benjamin)  
+Responsibilities will be divided by subsystem: 
+●  Mobile frontend (React Native UI and flows) 
+●  Backend/database (auth, storage, APIs) 
+●  Adaptation logic and algorithms 
+●  UX/content and testing 
+This modular structure allows parallel development and clear ownership. 
+Skills we expect to learn include mobile deployment workflows and secure backend 
+configuration. 
+ 
+Project Management Strategy 
+We will use: 
+●  GitHub for version control and issues 
+●  Groupchat for communication 
+●  weekly planning 
+●  short milestones  
+We will follow an agile approach, delivering working features incrementally rather than building 
+everything at once. 
+Scope will be reviewed weekly and non-essential features will be deferred to protect the core 
+functionality. 
+ 
+2. Initial Project Management Plan & Milestones 
+Phases of Work 
+Phase 1 – Setup and Foundations 
+●  Project repo and architecture 
+●  Firebase backend configuration 
+●  Authentication and onboarding 
+●  Basic exercise library 
+Phase 2 – Core System Development 
+●  Workout generation engine 
+●  Pain/feedback logging 
+●  Adaptation rules implementation 
+●  Session history storage 
+●  Basic progress screen  
+Phase 3 – Integration and Polish 
+●  UI/UX refinement 
+●  Testing and bug fixes 
+●  Final demo preparation  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Strategic Milestones 
+Milestone  Target 
+User Requirements finalized  Week 3 
+Conceptual solution demo  Week 5 
+Minimum viable workout system complete  Week 8 
+Testing begins  Week 
+10 
+Feature freeze  Week 
+12 
+Final demo  Week 
+14 
+ 
+High-Level Timeline 
+Weeks 1–3: Setup & onboarding  Weeks 4–6: Backend + workout engine  Weeks 7–9: Adaptation logic + progress tracking  Weeks 10–12: UI polish + testing  Weeks 13–14: Final fixes + presentation 
+ 
+3. Literature & Technology Review 
+Technology Stack 
+We selected: 
+●  React Native for cross-platform mobile development 
+●  Firebase for authentication and data storage 
+●  Cloud Functions for adaptation logic  
+These tools reduce backend overhead and allow faster iteration, which is critical for a semester 
+project. 
+ 
+Related Solutions 
+Current fitness platforms (e.g., Strava, general workout apps) focus on performance metrics 
+rather than injury recovery. Physical therapy apps often provide static programs without 
+real-time personalization. 
+Our approach differs by: 
+●  daily readiness check-ins 
+●  rule-based progression and regression 
+●  recovery milestones instead of performance goals 
+●  a calm, supportive UX  
+ 
+Research Insights 
+Rehabilitation best practices emphasize: 
+●  gradual load increases 
+●  pain-aware adjustments 
+●  staged progression 
+●  rest and recovery periods  
+Our system encodes these principles through deterministic rules rather than opaque machine 
+learning, ensuring safety and transparency. 
+ 
+AI Usage 
+AI will be used selectively to: 
+●  assist development (code generation, testing) 
+Core safety decisions will remain rule-based to maintain explainability and trust. 
