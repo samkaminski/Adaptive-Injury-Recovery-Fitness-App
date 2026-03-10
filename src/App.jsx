@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
 import AuthEntry from './screens/AuthEntry';
 import EmailSignIn from './screens/EmailSignIn';
 import CreateAccount from './screens/CreateAccount';
@@ -7,29 +7,37 @@ import ForgotPassword from './screens/ForgotPassword';
 import Home from './screens/Home';
 
 function App() {
-  // Temporary state for testing AuthStack vs AppStack toggle (Slice 1)
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'var(--color-mint-bg)',
+        fontFamily: 'var(--font-sans)',
+        color: 'var(--color-light-gray)',
+      }}>
+        Loading…
+      </div>
+    );
+  }
 
   return (
     <BrowserRouter>
       <Routes>
-        {isAuthenticated ? (
+        {user ? (
           /* AppStack */
           <>
-            <Route path="/" element={<Home onSignOut={() => setIsAuthenticated(false)} />} />
+            <Route path="/" element={<Home />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </>
         ) : (
           /* AuthStack */
           <>
-            <Route
-              path="/auth"
-              element={
-                <AuthEntry
-                  onStubSignIn={() => setIsAuthenticated(true)}
-                />
-              }
-            />
+            <Route path="/auth" element={<AuthEntry />} />
             <Route path="/auth/sign-in" element={<EmailSignIn />} />
             <Route path="/auth/create-account" element={<CreateAccount />} />
             <Route path="/auth/forgot-password" element={<ForgotPassword />} />

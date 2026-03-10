@@ -64,6 +64,11 @@
   opacity: 0.9;
 }
 
+.auth-entry__btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 .auth-entry__btn--secondary {
   background-color: var(--color-white);
   color: var(--color-dark-gray);
@@ -133,4 +138,23 @@
 
 .auth-entry__guest:hover {
   color: var(--color-dark-gray);
+}
+
+.auth-entry__guest:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.auth-entry__error {
+  margin: 0 0 var(--spacing-sm);
+  font-size: var(--font-size-small);
+  color: #c62828;
+  text-align: center;
+}
+
+.auth-entry__notice {
+  margin: 0 0 var(--spacing-md);
+  font-size: var(--font-size-small);
+  color: var(--color-light-gray);
+  text-align: center;
 }

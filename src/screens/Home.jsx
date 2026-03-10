@@ -1,8 +1,11 @@
+import { useAuth } from '../context/AuthContext';
 import './PlaceholderScreen.css';
 
-function Home({ onSignOut }) {
-  const handleSignOut = () => {
-    if (onSignOut) onSignOut(); // Stub: toggle to AuthStack for testing
+function Home() {
+  const { signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
   };
 
   return (

@@ -1,17 +1,32 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './AuthEntry.css';
 
-function AuthEntry({ onStubSignIn }) {
+function AuthEntry() {
   const navigate = useNavigate();
+  const { signInAsGuest, isFirebaseConfigured } = useAuth();
+  const [guestLoading, setGuestLoading] = useState(false);
+  const [guestError, setGuestError] = useState(null);
 
   const handleSignInWithEmail = () => navigate('/auth/sign-in');
   const handleCreateAccount = () => navigate('/auth/create-account');
   const handleForgotPassword = () => navigate('/auth/forgot-password');
-  const handleContinueWithGoogle = () => {
-    if (onStubSignIn) onStubSignIn(); // stub: toggle to AppStack for testing
+  const handleContinueWithGoogle = () => {}; // Not implemented yet
+
+  const handleContinueAsGuest = async () => {
+    setGuestError(null);
+    setGuestLoading(true);
+    try {
+      await signInAsGuest();
+    } catch (err) {
+      setGuestError(err.message || 'Could not sign in as guest. Please try again.');
+    } finally {
+      setGuestLoading(false);
+    }
   };
-  const handleContinueAsGuest = () => {}; // stub
-  const handleGetStarted = () => {}; // stub
+
+  const handleGetStarted = () => {}; // Stub
 
   return (
     <div className="auth-entry">
@@ -36,12 +51,16 @@ function AuthEntry({ onStubSignIn }) {
           Sign in to save plans and track recovery safely.
         </p>
 
+        {!isFirebaseConfigured && (
+          <p className="auth-entry__notice">Firebase is not configured yet.</p>
+        )}
         {/* Auth actions */}
         <div className="auth-entry__actions">
           <button
             type="button"
             className="auth-entry__btn auth-entry__btn--secondary"
             onClick={handleContinueWithGoogle}
+            disabled={!isFirebaseConfigured}
           >
             Continue with Google
           </button>
@@ -76,6 +95,11 @@ function AuthEntry({ onStubSignIn }) {
 
       {/* Bottom CTA area */}
       <div className="auth-entry__footer">
+        {guestError && (
+          <p className="auth-entry__error" role="alert">
+            {guestError}
+          </p>
+        )}
         <button
           type="button"
           className="auth-entry__btn auth-entry__btn--primary"
@@ -87,8 +111,9 @@ function AuthEntry({ onStubSignIn }) {
           type="button"
           className="auth-entry__guest"
           onClick={handleContinueAsGuest}
+          disabled={guestLoading || !isFirebaseConfigured}
         >
-          Continue as Guest
+          {guestLoading ? 'Signing in…' : 'Continue as Guest'}
         </button>
       </div>
     </div>
