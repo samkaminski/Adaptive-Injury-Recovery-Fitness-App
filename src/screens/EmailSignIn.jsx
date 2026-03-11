@@ -1,16 +1,48 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './PlaceholderScreen.css';
 
 function EmailSignIn() {
   const navigate = useNavigate();
+  const { signInWithEmail } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      await signInWithEmail(email, password);
+      // on success auth state will change and routing will switch
+    } catch (err) {
+      setError(err.message || 'Sign in failed');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="placeholder-screen">
       <h2>Email Sign In</h2>
-      <p>Placeholder screen — form to be added in a later slice.</p>
-      <button type="button" onClick={() => navigate(-1)}>
-        Back
-      </button>
+      {error && <p style={{ color: 'crimson' }}>{error}</p>}
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label>Email</label>
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        </div>
+        <div>
+          <label>Password</label>
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+        </div>
+        <div style={{ marginTop: 12 }}>
+          <button type="submit" disabled={loading}>{loading ? 'Signing in…' : 'Sign In'}</button>
+          <button type="button" onClick={() => navigate(-1)} style={{ marginLeft: 8 }}>Back</button>
+        </div>
+      </form>
     </div>
   );
 }
